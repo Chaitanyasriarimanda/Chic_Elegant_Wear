@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us - Chic Elegant Wear</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .split-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .split-image {
+      flex: 1;
+      background: url('images/about-banner.jpg') center center / cover no-repeat;
+    }
+
+    .split-content {
+      flex: 1;
+      background-color: #fffefb;
+      padding: 60px;
+      overflow-y: auto;
+      display: block;
+      text-align: center;
+    }
+
+    .split-content h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      margin-bottom: 25px;
+      color: #2c2c2c;
+    }
+
+    .split-content p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #444;
+      text-align: justify;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-top: 40px;
+      width: 100%;
+    }
+
+    .section h5 {
+      font-weight: 600;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: #333;
+      text-align: center;
+    }
+
+    .section ul {
+      list-style: disc;
+      padding-left: 1.5rem;
+      max-width: 650px;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .section ul li {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    a {
+      color: #444;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-back {
+      margin-top: 40px;
+      background-color: #7a8674;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 5px;
+      font-weight: 500;
+    }
+
+    .btn-back:hover {
+      background-color: #5e6d5a;
+    }
+
+    @media (max-width: 768px) {
+      .split-container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .split-image {
+        height: 300px;
+      }
+
+      .split-content {
+        padding: 30px 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="split-container">
+    <!-- Left: Image -->
+    <div class="split-image"></div>
+
+    <!-- Right: Content -->
+    <div class="split-content">
+      <h1>About the Developer</h1>
+      <p>
+        Hi! I'm <strong>Chaitanya Sri Arimanda</strong>, a passionate graduate student focused on creating intuitive, responsive, and user-friendly digital experiences. I enjoy transforming ideas into visually elegant and functionally robust web solutions.
+        <br><br>
+        <strong>Chic Elegant Wear</strong> was built as part of my ISM 6225 coursework to simulate a boutique-style online platform. It combines modern UI principles with category browsing, cart functionality, user login, and dynamic sales analytics in a static simulation.
+        <br><br>
+        This project allowed me to apply front-end development techniques, enhance layout composition, and improve user engagement through JavaScript-based interactivity. It reflects my commitment to clean UI/UX and practical development workflows.
+      </p>
+
+      <div class="section">
+        <h5>Technologies Used</h5>
+        <ul>
+          <li><strong>HTML5</strong> - semantic structure</li>
+          <li><strong>CSS3 + Bootstrap 5</strong> - responsive layout & design</li>
+          <li><strong>JavaScript</strong> - interactivity, cart, filtering, auth</li>
+          <li><strong>Chart.js</strong> - data visualizations for analytics</li>
+          <li><strong>LocalStorage</strong> - session & product persistence</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h5>GitHub Links</h5>
+        <ul>
+          <li><a href="https://github.com/Chaitanyasriarimanda" target="_blank">GitHub Profile</a></li>
+          <li><a href="https://github.com/Chaitanyasriarimanda/Chic_Elegant_Wear" target="_blank">Project Repository</a></li>
+        </ul>
+      </div>
+
+      <a href="index.html" class="btn btn-back">Back to Home</a>
+    </div>
+  </div>
+
+</body>
+</html>

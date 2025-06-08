@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Orders - Chic Elegant Wear</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">Chic Elegant Wear</a>
+      <div class="ms-auto">
+        <a href="index.html" class="btn btn-outline-dark btn-sm">Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <h2 class="mb-4">My Orders</h2>
+    <div class="d-flex justify-content-between mb-3">
+      <input type="text" id="search-input" class="form-control me-3" placeholder="Search by product name..." style="max-width: 300px;" />
+      <select id="filter-select" class="form-select" style="max-width: 200px;">
+        <option value="all">All Orders</option>
+        <option value="current">Current Orders</option>
+        <option value="cancelled">Cancelled Orders</option>
+      </select>
+    </div>
+
+    <div id="order-list" class="row"></div>
+    <nav>
+      <ul class="pagination justify-content-center mt-4" id="pagination"></ul>
+    </nav>
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <p class="mb-0">© 2025 Chic Elegant Wear</p>
+  </footer>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    function downloadInvoice(order) {
+      const doc = new jsPDF();
+      let y = 20;
+
+      doc.setFontSize(16);
+      doc.text(`Invoice - Order #${order.id}`, 14, y);
+      y += 10;
+
+      doc.setFontSize(12);
+      doc.text(`Date: ${order.date}`, 14, y);
+      y += 10;
+      doc.text(`Recipient: ${order.recipientName || 'N/A'}`, 14, y);
+      y += 10;
+      doc.text(`Shipping Address: ${order.shippingAddress}`, 14, y);
+      y += 10;
+      doc.text(`Contact: ${order.alternateEmail || order.registeredEmail}`, 14, y);
+      y += 10;
+      doc.text(`Payment Method: ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}`, 14, y);
+      y += 10;
+
+      doc.text("Items:", 14, y);
+      y += 10;
+      order.items.forEach(item => {
+        doc.text(`- ${item.name} (Size: ${item.size || 'N/A'}) ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`, 16, y);
+        y += 8;
+      });
+
+      y += 5;
+      doc.text(`Subtotal: $${order.subtotal.toFixed(2)}`, 14, y);
+      y += 8;
+      if (order.discount > 0) {
+        doc.text(`Discount: -$${order.discount.toFixed(2)}`, 14, y);
+        y += 8;
+      }
+      doc.text(`Total: $${order.total.toFixed(2)}`, 14, y);
+
+      doc.save(`Invoice_Order_${order.id}.pdf`);
+    }
+
+    let allOrders = [], currentOrders = [], cancelledOrders = [], currentPage = 1, ordersPerPage = 5, activeFilter = 'all';
+    let allFilteredOrders = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = JSON.parse(localStorage.getItem("loggedInUser"));
+      if (!user) {
+        alert("Please log in to view your orders.");
+        window.location.href = "auth.html";
+        return;
+      }
+
+      const storedOrders = JSON.parse(localStorage.getItem("userOrders") || "{}")[user.email] || [];
+      const storedCancelled = JSON.parse(localStorage.getItem("cancelledOrders") || "{}")[user.email] || [];
+
+      currentOrders = storedOrders;
+      cancelledOrders = storedCancelled;
+      allOrders = [...storedOrders, ...storedCancelled];
+
+      const searchInput = document.getElementById("search-input");
+      const filterSelect = document.getElementById("filter-select");
+
+      const render = () => {
+        const query = searchInput.value.toLowerCase();
+        const filter = activeFilter;
+
+        if (filter === "current") allFilteredOrders = currentOrders;
+        else if (filter === "cancelled") allFilteredOrders = cancelledOrders;
+        else allFilteredOrders = allOrders;
+
+        if (query) {
+          allFilteredOrders = allFilteredOrders.filter(order =>
+            order.items.some(i => i.name.toLowerCase().includes(query))
+          );
+        }
+
+        renderOrders(allFilteredOrders);
+        renderPagination(allFilteredOrders.length);
+      };
+
+      searchInput.addEventListener("input", () => {
+        currentPage = 1;
+        render();
+      });
+
+      filterSelect.addEventListener("change", () => {
+        currentPage = 1;
+        activeFilter = filterSelect.value;
+        render();
+      });
+
+      window.cancelOrder = function(orderId) {
+        const allOrdersData = JSON.parse(localStorage.getItem("userOrders") || "{}");
+        const cancelledOrdersData = JSON.parse(localStorage.getItem("cancelledOrders") || "{}");
+
+        const userOrdersList = allOrdersData[user.email] || [];
+        const orderToCancel = userOrdersList.find(o => o.id === orderId);
+        const updatedOrders = userOrdersList.filter(o => o.id !== orderId);
+
+        allOrdersData[user.email] = updatedOrders;
+        cancelledOrdersData[user.email] = [...(cancelledOrdersData[user.email] || []), orderToCancel];
+
+        localStorage.setItem("userOrders", JSON.stringify(allOrdersData));
+        localStorage.setItem("cancelledOrders", JSON.stringify(cancelledOrdersData));
+
+        alert("Order cancelled successfully.");
+        location.reload();
+      };
+
+      render();
+    });
+
+    function renderPagination(totalOrders) {
+      const pagination = document.getElementById("pagination");
+      pagination.innerHTML = "";
+      const pageCount = Math.ceil(totalOrders / ordersPerPage);
+
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement("li");
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener("click", (e) => {
+          e.preventDefault();
+          currentPage = i;
+          renderOrders(allFilteredOrders);
+          renderPagination(allFilteredOrders.length);
+        });
+        pagination.appendChild(li);
+      }
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById("order-list");
+      container.innerHTML = "";
+      const start = (currentPage - 1) * ordersPerPage;
+      const paginatedOrders = orders.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(start, start + ordersPerPage);
+
+      paginatedOrders.forEach(order => {
+        const col = document.createElement("div");
+        col.className = "col-12 mb-4";
+
+        const itemsHTML = order.items.map(item => `
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            ${item.name} (Size: ${item.size || 'N/A'}) &times; ${item.quantity}
+            <span>$${(item.price * item.quantity).toFixed(2)}</span>
+          </li>
+        `).join("");
+
+        const orderTime = new Date(order.id);
+        const now = new Date();
+        const diffInHours = (now - orderTime) / (1000 * 60 * 60);
+        const isCancelled = cancelledOrders.some(o => o.id === order.id);
+        const canCancel = currentOrders.some(o => o.id === order.id) && diffInHours <= 24;
+
+        col.innerHTML = `
+          <div class="card shadow-sm ${isCancelled ? 'bg-light' : ''}">
+            <div class="card-header fw-bold ${isCancelled ? 'bg-danger text-white' : 'bg-light'}">
+              Order #${order.id} - ${order.date} ${isCancelled ? '<span class="ms-2 badge bg-white text-danger">Cancelled</span>' : ''}
+            </div>
+            <ul class="list-group list-group-flush">
+              ${itemsHTML}
+              <li class="list-group-item d-flex justify-content-between">Subtotal <span>$${order.subtotal.toFixed(2)}</span></li>
+              ${order.discount > 0 ? `<li class="list-group-item d-flex justify-content-between text-success">Discount <span>-$${order.discount.toFixed(2)}</span></li>` : ''}
+              <li class="list-group-item fw-bold d-flex justify-content-between">Total <span>$${order.total.toFixed(2)}</span></li>
+              <li class="list-group-item"><strong>Recipient:</strong> ${order.recipientName || 'N/A'}</li>
+              <li class="list-group-item"><strong>Shipping Address:</strong> ${order.shippingAddress}</li>
+              <li class="list-group-item"><strong>Payment Method:</strong> ${order.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Online Payment'}</li>
+              <li class="list-group-item"><strong>Contact:</strong> ${order.alternateEmail || order.registeredEmail}</li>
+              <li class="list-group-item text-end">
+                <button class="btn btn-sm btn-outline-dark me-2" onclick='downloadInvoice(${JSON.stringify(order).replace(/'/g, "\\'")})'>Download Invoice</button>
+                ${canCancel ? `<button class="btn btn-sm btn-outline-danger" onclick="cancelOrder(${order.id})">Cancel Order</button>` : ''}
+              </li>
+            </ul>
+          </div>
+        `;
+        container.appendChild(col);
+      });
+    }
+  </script>
+</body>
+</html>
